@@ -1,0 +1,24 @@
+{
+  "name": "duct-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Duct Sizing Pro - HVAC duct sizing mobile app",
+  "scripts": {
+    "serve": "npx http-server www -p 8080 -c-1",
+    "add:android": "npx cap add android",
+    "add:ios": "npx cap add ios",
+    "assets": "npx @capacitor/assets generate --iconBackgroundColor #10b981 --splashBackgroundColor #f0f2f5",
+    "sync": "npx cap sync",
+    "open:android": "npx cap open android",
+    "open:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}
