@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Duct Pro">
+    <title>Duct Sizing Pro</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <style>
+        :root {
+            --friction-theme: #10b981;
+            --velocity-theme: #3b82f6;
+            --bg-body: #f0f2f5;
+            --card-bg: #ffffff;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html, body { margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Kanit', 'Noto Sans Thai', 'Sarabun', 'Thonburi', 'Leelawadee UI', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: calc(16px + var(--safe-top)) 14px calc(24px + var(--safe-bottom));
+            display: flex; justify-content: center;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%; max-width: 600px;
+            padding: 24px 20px; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            align-self: flex-start;
+        }
+
+        .header { text-align: center; margin-bottom: 22px; }
+        .header h1 { margin: 0; font-size: 26px; color: #1e293b; }
+        .header p { color: #64748b; font-size: 13px; margin: 5px 0 0; }
+
+        .method-container {
+            background: #f8fafc; padding: 5px; border-radius: 12px;
+            display: flex; margin-bottom: 22px; border: 1px solid #e2e8f0;
+        }
+        .method-btn {
+            flex: 1; padding: 12px 6px; border: none; border-radius: 8px;
+            cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 600;
+            transition: 0.25s; background: transparent; color: #64748b;
+        }
+        .method-btn.active.friction { background: var(--friction-theme); color: white; }
+        .method-btn.active.velocity { background: var(--velocity-theme); color: white; }
+
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 14px; margin-bottom: 8px; font-weight: 600; color: #334155; }
+        .input-group { display: flex; gap: 10px; }
+        input, select {
+            padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-size: 16px; /* 16px ป้องกัน iOS ซูมเข้าอัตโนมัติ */
+            font-family: inherit; width: 100%; box-sizing: border-box;
+            background: #fff; color: #1e293b; min-height: 48px;
+        }
+        input:focus, select:focus { outline: none; border-color: #94a3b8; }
+
+        .calc-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: 600; cursor: pointer; color: white;
+            font-family: inherit; transition: 0.2s; margin-top: 6px; min-height: 52px;
+        }
+        .calc-btn.friction { background: var(--friction-theme); }
+        .calc-btn.velocity { background: var(--velocity-theme); }
+        .calc-btn:active { filter: brightness(0.9); transform: translateY(1px); }
+
+        .results { margin-top: 26px; display: none; }
+        .result-card {
+            border-radius: 15px; padding: 18px; border-left: 5px solid;
+            background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+        }
+        .friction-res { border-left-color: var(--friction-theme); }
+        .velocity-res { border-left-color: var(--velocity-theme); }
+
+        .res-title { font-size: 14px; color: #64748b; margin-bottom: 5px; }
+        .res-value { font-size: 28px; font-weight: 600; margin-bottom: 15px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th { text-align: center; padding: 10px 4px; background: #f8fafc; font-size: 13px; color: #64748b; }
+        td { text-align: center; padding: 12px 4px; border-top: 1px solid #f1f5f9; font-weight: 600; font-size: 15px; }
+        .row-match { background-color: #f0fdf4; color: #166534; }
+
+        .grid-view { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-item { background: #f8fafc; padding: 12px 10px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; font-weight: 600; }
+
+        .note { font-size: 12px; color: #94a3b8; margin-top: 12px; text-align: center; }
+        .hidden { display: none; }
+
+        @media (prefers-color-scheme: dark) {
+            :root { --bg-body: #0f172a; --card-bg: #1e293b; }
+            .header h1 { color: #f1f5f9; }
+            .header p, .res-title { color: #94a3b8; }
+            label { color: #cbd5e1; }
+            .method-container { background: #0f172a; border-color: #334155; }
+            input, select { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+            .result-card { background: #1e293b; }
+            .res-value { color: #f1f5f9; }
+            th { background: #0f172a; color: #94a3b8; }
+            td { border-top-color: #334155; color: #e2e8f0; }
+            .row-match { background-color: #064e3b; color: #a7f3d0; }
+            .grid-item { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>DUCT SIZING <span id="title-tag" style="color: var(--friction-theme)">PRO</span></h1>
+        <p>HVAC Design Tool @STANDARD ASHRAE</p>
+    </div>
+
+    <div class="method-container">
+        <button class="method-btn active friction" onclick="switchMethod('friction')">Equal Friction</button>
+        <button class="method-btn velocity" onclick="switchMethod('velocity')">Velocity Constant</button>
+    </div>
+
+    <div class="form-group">
+        <label>Air Flow Rate / ปริมาณลม</label>
+        <div class="input-group">
+            <input type="number" inputmode="decimal" id="airFlow" placeholder="ระบุปริมาณลม">
+            <select id="flowUnit" style="width: 110px;">
+                <option value="CMH">CMH</option>
+                <option value="CFM">CFM</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="frictionFields">
+        <div class="form-group">
+            <label>Duct Section</label>
+            <select id="frictionType" onchange="setFrictionDefaults()">
+                <option value="Supply">Supply Duct</option>
+                <option value="Return">Return Duct</option>
+                <option value="Exhaust">Exhaust Duct</option>
+                <option value="Intake">Intake Duct</option>
+            </select>
+        </div>
+        <div class="input-group form-group">
+            <div style="flex:1">
+                <label>Min Friction (in/100ft)</label>
+                <input type="number" inputmode="decimal" id="minF" value="0.08" step="0.001">
+            </div>
+            <div style="flex:1">
+                <label>Max Friction (in/100ft)</label>
+                <input type="number" inputmode="decimal" id="maxF" value="0.11" step="0.001">
+            </div>
+        </div>
+    </div>
+
+    <div id="velocityFields" class="hidden">
+        <div class="form-group">
+            <label>Duct Section</label>
+            <select id="velType" onchange="setVelocityDefaults()">
+                <option value="Main">Main Duct</option>
+                <option value="Branch">Branch Duct</option>
+                <option value="Intake">Intake / Exhaust</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>VELOCITY (m/s)</label>
+            <input type="number" inputmode="decimal" id="designVel" value="8.0" step="0.1">
+        </div>
+    </div>
+
+    <button id="calcBtn" class="calc-btn friction" onclick="performCalculation()">Calculate Size</button>
+
+    <div id="resultArea" class="results"></div>
+</div>
+
+<script>
+    let currentMethod = 'friction';
+
+    function switchMethod(method) {
+        currentMethod = method;
+        const btnF = document.querySelector('.method-btn.friction');
+        const btnV = document.querySelector('.method-btn.velocity');
+        const fieldF = document.getElementById('frictionFields');
+        const fieldV = document.getElementById('velocityFields');
+        const calcBtn = document.getElementById('calcBtn');
+        const titleTag = document.getElementById('title-tag');
+
+        document.getElementById('resultArea').style.display = 'none';
+
+        if (method === 'friction') {
+            btnF.classList.add('active'); btnV.classList.remove('active');
+            fieldF.classList.remove('hidden'); fieldV.classList.add('hidden');
+            calcBtn.className = 'calc-btn friction';
+            titleTag.style.color = 'var(--friction-theme)';
+        } else {
+            btnV.classList.add('active'); btnF.classList.remove('active');
+            fieldV.classList.remove('hidden'); fieldF.classList.add('hidden');
+            calcBtn.className = 'calc-btn velocity';
+            titleTag.style.color = 'var(--velocity-theme)';
+        }
+    }
+
+    function setFrictionDefaults() {
+        const data = { Supply:[0.08, 0.11], Return:[0.04, 0.08], Exhaust:[0.05, 0.08], Intake:[0.03, 0.07] };
+        const type = document.getElementById('frictionType').value;
+        document.getElementById('minF').value = data[type][0];
+        document.getElementById('maxF').value = data[type][1];
+    }
+
+    function setVelocityDefaults() {
+        const data = { Main: 8.0, Branch: 6.0, Intake: 2.5 };
+        document.getElementById('designVel').value = data[document.getElementById('velType').value];
+    }
+
+    function performCalculation() {
+        const rawFlow = parseFloat(document.getElementById('airFlow').value);
+        const unit = document.getElementById('flowUnit').value;
+        const resArea = document.getElementById('resultArea');
+
+        if (!rawFlow || rawFlow <= 0) { alert("กรุณาระบุปริมาณลม"); return; }
+
+        // Smart Unit Conversion
+        const flowCFM = (unit === 'CMH') ? rawFlow * 0.588577 : rawFlow;
+        const flowCMH = (unit === 'CFM') ? rawFlow / 0.588577 : rawFlow;
+
+        resArea.innerHTML = '';
+        resArea.style.display = 'block';
+
+        if (currentMethod === 'friction') {
+            calculateFriction(flowCFM);
+        } else {
+            calculateVelocity(flowCMH);
+        }
+
+        resArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function calculateFriction(cfm) {
+        const minF = parseFloat(document.getElementById('minF').value);
+        const maxF = parseFloat(document.getElementById('maxF').value);
+
+        let html = `<div class="result-card friction-res">
+            <div class="res-title">Design Flow (CFM)</div>
+            <div class="res-value">${cfm.toFixed(0)} <small>CFM</small></div>
+            <table>
+                <thead>
+                    <tr><th>W (in)</th><th>H (in)</th><th>Velocity (fpm)</th><th>Friction</th></tr>
+                </thead>
+                <tbody>`;
+
+        let found = false;
+        // Search Logic: Even increments 6" to 50"
+        for (let w = 6; w <= 50; w += 2) {
+            for (let h = 6; h <= w; h += 2) {
+                const De = 1.3 * Math.pow((w * h), 0.625) / Math.pow((w + h), 0.25);
+                const friction = 0.109136 * Math.pow(cfm, 1.9) / Math.pow(De, 5.02);
+                const velocity = cfm / ((w * h) / 144);
+
+                if (friction >= minF && friction <= maxF && velocity < 2500) {
+                    found = true;
+                    html += `<tr class="row-match">
+                        <td>${w}"</td><td>${h}"</td>
+                        <td>${velocity.toFixed(0)}</td>
+                        <td>${friction.toFixed(3)}</td>
+                    </tr>`;
+                }
+            }
+        }
+
+        if (!found) html += `<tr><td colspan="4">ไม่พบขนาดท่อที่เหมาะสมในช่วง friction นี้</td></tr>`;
+        html += `</tbody></table></div>`;
+        document.getElementById('resultArea').innerHTML = html;
+    }
+
+    function calculateVelocity(cmh) {
+        const v_ms = parseFloat(document.getElementById('designVel').value);
+        if (!v_ms || v_ms <= 0) { alert("กรุณาระบุความเร็วลม"); return; }
+
+        // Area (m2) = CMH / (3600 * v)
+        const area_m2 = cmh / (3600 * v_ms);
+        const area_in2 = area_m2 * 1550.003;
+        const dia_in = Math.ceil(Math.sqrt((4 * area_in2) / Math.PI) / 2) * 2;
+
+        let html = `<div class="result-card velocity-res">
+            <div class="res-title">Required Duct Area (in²)</div>
+            <div class="res-value">${area_in2.toFixed(1)} <small>in²</small></div>
+            <div class="res-title">Round Duct (in)</div>
+            <div class="res-value" style="color:var(--velocity-theme)">Ø ${dia_in.toFixed(1)}"</div>
+
+            <div class="res-title" style="margin-top:15px">Rectangular Duct (W x H)</div>
+            <div class="grid-view">`;
+
+        let any = false;
+        [8, 10, 12, 14, 16, 18, 20].forEach(h => {
+            const w = Math.ceil((area_in2 / h) / 2) * 2;
+            if (w >= h && w <= h * 3) {
+                any = true;
+                html += `<div class="grid-item">${w}" x ${h}"</div>`;
+            }
+        });
+
+        if (!any) html += `<div class="grid-item" style="grid-column: 1 / -1">ไม่มีขนาดสี่เหลี่ยมในชุดมาตรฐาน ให้ใช้ท่อกลมแทน</div>`;
+        html += `</div></div>`;
+        document.getElementById('resultArea').innerHTML = html;
+    }
+
+    // Offline support
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+</script>
+
+</body>
+</html>
